@@ -36,7 +36,7 @@ class Car(Vehicle):
     def __init__(self):
         super(Car, self).__init__()
 
-    def set_registration(self,registration_number=None):
+    def set_registration(self, registration_number=None):
         self._reg_number = registration_number
 
     def set_color(self, color=None):
