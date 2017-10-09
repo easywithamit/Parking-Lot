@@ -8,7 +8,7 @@
 
 import heapq
 from Vehicle import Car
-from sys import argv
+from sys import argv,exit
 
 
 class ParkingLot:
@@ -26,7 +26,9 @@ class ParkingLot:
             return self.slots_available[0]
         return False
 
-    def park_vehicle(self, reg_number, color):
+    def park(self, arg):
+        reg_number = arg[0]
+        color = arg[1]
         vehicle = Car()
         vehicle.set_registration(reg_number)
         vehicle.set_color(color)
@@ -34,7 +36,7 @@ class ParkingLot:
         if parking_slot_available is False:
             print("Sorry, parking lot is full")
         else:
-            is_parked = parking_slot_available.park(vehicle)
+            is_parked = parking_slot_available.park_vehicle(vehicle)
             if is_parked:
                 try:
                     slot_popped = heapq.heappop(self.slots_available)
@@ -56,7 +58,8 @@ class ParkingLot:
                 except IndexError:
                     print("Error in parking")
 
-    def unpark_vehicle(self, slot_id):
+    def leave(self, slot_id):
+        slot_id = int(slot_id)
         if slot_id in self.slots_occupied["slots"]:
             slot_left = self.slots_occupied["slots"][slot_id]
             try:
@@ -137,7 +140,7 @@ class ParkingSlot:
         self.parked_car = None
         self.parking_slot_id = slot_id
 
-    def park(self, vehicle_object):
+    def park_vehicle(self, vehicle_object):
         try:
             self.parked_car = vehicle_object
             return True
@@ -160,19 +163,65 @@ def create_parking_lot(slots):
     return p_lot
 
 
+def parse_input(pl_instance, args):
+    arg_list = args.split()
+    number_of_args = len(arg_list)
+    if number_of_args == 0:
+        return
+    function_name = arg_list[0].strip()
+    try:
+        if number_of_args == 1:
+            getattr(pl_instance, function_name)()
+        elif number_of_args == 2:
+            getattr(pl_instance, function_name)(arg_list[1])
+        else:
+            getattr(pl_instance, function_name)(arg_list[1:])
+    except Exception as e:
+        print("{} :This method is not allowed".format(e.message))
+
+
+def initiate_parking_lot(arguments):
+    argument_list = arguments.split()
+    try:
+        parking_lot_object = globals()[argument_list[0]](int(argument_list[1]))
+    except Exception as e:
+        print("{} : Parking Lot needs to be created first!".format(e.message))
+        exit(-1)
+    return parking_lot_object
+
+
 if __name__ == '__main__':
-    p = create_parking_lot(5)
-    p.park_vehicle('KA-01- HH-1234', 'White')
-    p.park_vehicle('KA-01- HH-124', 'Blue')
-    p.park_vehicle('KA-01- HH-1334', 'White')
-    p.park_vehicle('KA-01- HH-1434', 'Blue')
-    p.unpark_vehicle(3)
-    p.unpark_vehicle(4)
-    p.park_vehicle('KA-01- HH-1534', 'Red')
-    p.park_vehicle('KA-01- HH-1634', 'Grey')
-    p.park_vehicle('KA-01- HH-1734', 'White')
-    p.status()
-    p.registration_numbers_for_cars_with_colour("White")
-    p.slot_numbers_for_cars_with_colour("White")
-    p.slot_number_for_registration_number("KA-01- HH-1734")
-    p.slot_number_for_registration_number("KA-01- HH-1732")
+    try:
+        pl_instance = None
+        file_name = argv[1]
+        print("File input::")
+        with open(file_name) as FileObj:
+            for line in FileObj:
+                if not pl_instance:
+                    pl_instance = initiate_parking_lot(line)
+                else:
+                    parse_input(pl_instance, line)
+    except IndexError as e:
+        print("Console input::")
+        while True:
+            input_statement = raw_input()
+            if not pl_instance:
+                pl_instance = initiate_parking_lot(input_statement)
+            else:
+                parse_input(pl_instance, input_statement)
+
+    # p = create_parking_lot(5)
+    # p.park('KA-01- HH-1234', 'White')
+    # p.park('KA-01- HH-124', 'Blue')
+    # p.park('KA-01- HH-1334', 'White')
+    # p.park('KA-01- HH-1434', 'Blue')
+    # p.unpark(3)
+    # p.unpark(4)
+    # p.park('KA-01- HH-1534', 'Red')
+    # p.park('KA-01- HH-1634', 'Grey')
+    # p.park('KA-01- HH-1734', 'White')
+    # p.status()
+    # p.registration_numbers_for_cars_with_colour("White")
+    # p.slot_numbers_for_cars_with_colour("White")
+    # p.slot_number_for_registration_number("KA-01- HH-1734")
+    # p.slot_number_for_registration_number("KA-01- HH-1732")
